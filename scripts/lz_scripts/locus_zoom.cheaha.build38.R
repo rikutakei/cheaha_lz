@@ -33,7 +33,7 @@ if (ancestry == 'UKB') {
 	map_data = vroom('/data/user/home/rtakei/handy_scripts/locuszooms/data/build_mapping/all_1kgp_variants.txt')
 }
 
-gene = read.table(gsub('whomai', whoami, '/data/user/home/whoami/handy_scripts/locuszooms/data/build38_genes/Gencode_GRCh38_Genes_UniqueList2024.txt'), sep = '\t', header = T, stringsAsFactors = F)
+gene = read.table(gsub('whoami', whoami, '/data/user/home/whoami/handy_scripts/locuszooms/data/build38_genes/Gencode_GRCh38_Genes_UniqueList2024.txt'), sep = '\t', header = T, stringsAsFactors = F)
 
 type = args[3]
 

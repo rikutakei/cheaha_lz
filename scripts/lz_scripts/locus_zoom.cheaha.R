@@ -25,7 +25,7 @@ if (ancestry == 'TAMA') {
 	p_type = 'P'
 }
 
-gene = read.table(gsub('whomai', whoami, '/data/user/home/whoami/handy_scripts/locuszooms/data/build37_genes/Gencode_GRCh37_Genes_UniqueList2021.txt'), sep = '\t', header = T, stringsAsFactors = F)
+gene = read.table(gsub('whoami', whoami, '/data/user/home/whoami/handy_scripts/locuszooms/data/build37_genes/Gencode_GRCh37_Genes_UniqueList2021.txt'), sep = '\t', header = T, stringsAsFactors = F)
 
 type = args[3]
 
