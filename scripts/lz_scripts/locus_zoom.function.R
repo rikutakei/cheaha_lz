@@ -603,7 +603,7 @@ get.ld <- function(region, snp, population) {
 
 	# gsub the command and filename for chr, start/end positions and the population:
 	base.command = "source ~/.bashrc;
-	bash /home/rtakei/handy_scripts/locuszooms/scripts/lz_scripts/calc_ld.sh ZZ Y1 Y2 SNP POP TYPE
+	bash /home/$(whoami)/handy_scripts/locuszooms/scripts/lz_scripts/calc_ld.sh ZZ Y1 Y2 SNP POP TYPE
 	"
 
 	base.command = arg_sub(base.command, region[1], region[2], region[3], ld.snp, population, toupper(population), newline = T)

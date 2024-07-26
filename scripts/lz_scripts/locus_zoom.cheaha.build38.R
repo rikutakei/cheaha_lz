@@ -6,7 +6,9 @@
 
 library(vroom)
 
-source('/data/user/home/rtakei/handy_scripts/locuszooms/scripts/lz_scripts/locus_zoom.function.R')
+whoami = Sys.getenv('USER')
+
+source(gsub('whoami', whoami, '/data/user/home/whoami/handy_scripts/locuszooms/scripts/lz_scripts/locus_zoom.function.R'))
 
 args = commandArgs(trailingOnly = T)
 
@@ -24,18 +26,19 @@ if (ancestry == 'TAMA') {
 }
 
 # Load mapping data:
+# TODO: make the path more general
 if (ancestry == 'UKB') {
 	map_data = vroom('/data/user/home/rtakei/handy_scripts/locuszooms/data/build_mapping/all_ukbb_variants.txt')
 } else {
 	map_data = vroom('/data/user/home/rtakei/handy_scripts/locuszooms/data/build_mapping/all_1kgp_variants.txt')
 }
 
-gene = read.table('/data/user/home/rtakei/handy_scripts/locuszooms/data/build38_genes/Gencode_GRCh38_Genes_UniqueList2024.txt', sep = '\t', header = T, stringsAsFactors = F)
+gene = read.table(gsub('whomai', whoami, '/data/user/home/whoami/handy_scripts/locuszooms/data/build38_genes/Gencode_GRCh38_Genes_UniqueList2024.txt'), sep = '\t', header = T, stringsAsFactors = F)
 
 type = args[3]
 
 out_dir = "/scratch/USER/lz_outputs/lz_plots/"
-out_dir = gsub(pattern = 'USER', replacement = Sys.getenv('USER'), out_dir)
+out_dir = gsub(pattern = 'USER', replacement = whoami, out_dir)
 out_prefix = paste(out_dir, ancestry, sep = '')
 
 if (type == 'gene') {
