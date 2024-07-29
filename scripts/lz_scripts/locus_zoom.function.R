@@ -130,8 +130,8 @@ locus.zoom <- function(data = NULL, snp = NA, gene = NA, region = NA, ld.file = 
 	}
 
 	# Now re-define region to work with:
-	region[2] = region[2] - offset_bp # start position
-	region[3] = region[3] + offset_bp # end position
+	region[2] = as.numeric(region[2]) - offset_bp # start position
+	region[3] = as.numeric(region[3]) + offset_bp # end position
 
 	# Make a copy of the region specifically for LD calculation (since the region
 	# can "change" if it is in different build)
@@ -237,8 +237,8 @@ locus.zoom <- function(data = NULL, snp = NA, gene = NA, region = NA, ld.file = 
 	layout(matrix(c(1:mat.row), byrow = TRUE), heights = c(rep(locus.par, npanel), 10))
 
 	# Make Plotting Variables
-	x.min = region[2]
-	x.max = region[3]
+	x.min = as.numeric(region[2])
+	x.max = as.numeric(region[3])
 
 	# Plot N locus zooms
 	if (npanel > 1) {
