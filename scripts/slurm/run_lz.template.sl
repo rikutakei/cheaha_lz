@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=16G
 #SBATCH --partition=express
-#SBATCH --time=02:00:00
+#SBATCH --time=01:00:00
 #SBATCH --output=/data/scratch/USER/lz_outputs/slurm_logs/%x_%A_%a.out
 #SBATCH --error=/data/scratch/USER/lz_outputs/slurm_logs/%x_%A_%a.err
 #SBATCH --array=1-NUM

@@ -60,7 +60,7 @@
 # NA = #7F7F7F
 
 #### Function to make LocusZoom like plots ####
-locus.zoom <- function(data = NULL, snp = NA, gene = NA, region = NA, ld.file = NULL, offset_bp = 200000, genes.data = NULL, psuedogenes = FALSE, RNAs = FALSE, TEC = FALSE, plot.title = NULL, plot.type = "jpg", nominal = 6, significant = 7.3, file.name = NULL, secondary.snp = NA, secondary.label = FALSE, secondary.circle = TRUE, genes.pvalue = NULL, colour.genes = FALSE, population = "EUR", sig.type = "P", nplots = FALSE, ignore.lead = FALSE, rsid.check = TRUE, nonhuman = FALSE, build38 = FALSE, map.data = NULL) {
+locus.zoom <- function(data = NULL, snp = NA, gene = NA, region = NA, ld.file = NULL, offset_bp = 200000, genes.data = NULL, psuedogenes = FALSE, RNAs = FALSE, TEC = FALSE, plot.title = NULL, plot.type = "jpg", nominal = 6, significant = 7.3, file.name = NULL, secondary.snp = NA, secondary.label = FALSE, secondary.circle = TRUE, genes.pvalue = NULL, colour.genes = FALSE, population = "EUR", sig.type = "P", nplots = FALSE, ignore.lead = FALSE, rsid.check = TRUE, nonhuman = FALSE, build = 37, map.data = NULL) {
 
 	# Define constants:
 	LD.colours <- data.frame(LD = as.character(seq(from = 0, to = 1, by = 0.1)), Colour = c("#000080",rep(c("#000080", "#87CEFA", "#00FF00", "#FFA500", "#FF0000"), each = 2)), stringsAsFactors = FALSE)
@@ -133,10 +133,6 @@ locus.zoom <- function(data = NULL, snp = NA, gene = NA, region = NA, ld.file = 
 	region[2] = as.numeric(region[2]) - offset_bp # start position
 	region[3] = as.numeric(region[3]) + offset_bp # end position
 
-	# Make a copy of the region specifically for LD calculation (since the region
-	# can "change" if it is in different build)
-	region.ld = region
-
 	## Pull out the relevant information from the gene data.
 
 	# Any gene that overlaps/intersect with the defined region is included:
@@ -197,21 +193,9 @@ locus.zoom <- function(data = NULL, snp = NA, gene = NA, region = NA, ld.file = 
 	lead.pos = lead.data$BP[lead.ind]
 	lead.logp = lead.data$logP[lead.ind]
 
-	# Adjust the region if the input summary stats is in build38:
-	if (build38) {
-		if (is.null(map.data)) {
-			stop("You need to specify a mapping data to convert the position to build 37.")
-		}
-		region.ld = adjust.region(lead.data, map.data)
-		if (region[1] %in% c('X', 'Y', 'MT')) {
-			region[1] = switch(region[1], X = 23, Y = 24, MT = 25)
-			region = as.numeric(region)
-		}
-	}
-
 	# If LD information is not supplied, calculate it from the 1000 genomes data:
 	if (is.null(ld.file)) {
-		ld.file = get.ld(region.ld, lead.snp, population)
+		ld.file = get.ld(region, lead.snp, population, build)
 	}
 
 	# Add LD to Results
@@ -575,7 +559,7 @@ elog10 <- function(p) {
 #### Function to get the LD information of specified population from the 1000 Genomes data (March 2017 release): ####
 # NOTE: the input SNP MUST be in rsID format, not CHR:POS-based.
 # NOTE: This function will leave/save the LD information in the working directory for future reference (e.g. if the user wanted to use the same LD information)
-get.ld <- function(region, snp, population) {
+get.ld <- function(region, snp, population, build) {
 	ld.snp = snp
 
 	# Make a new check statement for 1KGP and UKBB
@@ -583,7 +567,7 @@ get.ld <- function(region, snp, population) {
 		vcf.filename = 'imputed_chrZZ.bgen'
 		file_path = "/data/project/merrimanlab/reference_files/ukbiobank/genotypes/imputed/"
 	} else {
-		vcf.filename = "1KGP_POP_chrZZ.no_relatives.rsid.vcf.gz"
+		vcf.filename = "1KGP_POP_chrZZ.BUILDall_samples.rsid.vcf.gz"
 		if(population == "TAMA"){
 			vcf.filename = gsub(pattern = 'POP', replacement = "TAMA", vcf.filename)
 			file_path = "/data/project/merrimanlab/reference_files/1kgp_data/per_ancestry/TAMA_major/vcf/"
@@ -594,11 +578,20 @@ get.ld <- function(region, snp, population) {
 	}
 	vcf.filename = gsub(pattern = 'ZZ', replacement = region[1], vcf.filename)
 
+	# Deal with chrX (it is supposed to be numeric, as it is converted during
+	# the LZ call in parent script):
 	if (region[1] == 23) {
 		if (population == "UKB") {
 			stop('There is no X chromosome information available for UKBB.')
 		}
 		vcf.filename = gsub(pattern = 'chr23', replacement = 'chrX', vcf.filename)
+	}
+
+	# Deal with which 1KGP build to use:
+	if (build == 38) {
+		vcf.filename = gsub(pattern = 'BUILD', replacement = 'b38.', vcf.filename)
+	} else {
+		vcf.filename = gsub(pattern = 'BUILD', replacement = '', vcf.filename)
 	}
 
 	file_list = list.files(path = file_path)
@@ -610,10 +603,10 @@ get.ld <- function(region, snp, population) {
 
 	# gsub the command and filename for chr, start/end positions and the population:
 	base.command = "source ~/.bashrc;
-	bash /home/$(whoami)/handy_scripts/locuszooms/scripts/lz_scripts/calc_ld.sh ZZ Y1 Y2 SNP POP TYPE
+	bash /home/$(whoami)/handy_scripts/locuszooms/scripts/lz_scripts/calc_ld.sh ZZ Y1 Y2 SNP POP TYPE BUILD
 	"
 
-	base.command = arg_sub(base.command, region[1], region[2], region[3], ld.snp, population, toupper(population), newline = T)
+	base.command = arg_sub(base.command, region[1], region[2], region[3], ld.snp, population, build, newline = T)
 
 	# Set the LD file name
 	ld.dir = "/scratch/USER/lz_outputs/ld_files/"
@@ -623,7 +616,7 @@ get.ld <- function(region, snp, population) {
 	if (population == 'UKB') {
 		ld.file = gsub('1KGP_POP', 'UKBB', ld.file)
 	}
-	ld.file = arg_sub(ld.file, region[1], region[2], region[3], ld.snp, population, toupper(population), newline = F)
+	ld.file = arg_sub(ld.file, region[1], region[2], region[3], ld.snp, population, build, newline = F)
 
 	# Make a system call to run the bcftools/plink command if the LD file isn't
 	# made already
@@ -650,13 +643,14 @@ get.ld <- function(region, snp, population) {
 # Function to substitute relevant information in a given string
 #
 # `newline` option will remove the newline character from the string
-arg_sub = function(input, chr, start, end, snp, pop, type, newline = F ) {
+arg_sub = function(input, chr, start, end, snp, pop, build, newline = F ) {
 	res = gsub(pattern = 'ZZ', replacement = chr, input)
 	res = gsub(pattern = 'Y1', replacement = start, res)
 	res = gsub(pattern = 'Y2', replacement = end, res)
 	res = gsub(pattern = 'SNP', replacement = snp, res)
 	res = gsub(pattern = 'POP', replacement = pop, res)
 	res = gsub(pattern = 'TYPE', replacement = toupper(pop), res)
+	res = gsub(pattern = 'BUILD', replacement = build, res)
 	if (newline) {
 		res = gsub(pattern = "\n ", replacement = "", res)
 	}
@@ -673,6 +667,8 @@ read.plink.loci <- function(file = NULL) {
 	return(data)
 }
 
+# TODO: delete this function after proper calc_ld implementation
+#
 # Function to "map/convert" the build 38 position to build 37.
 #
 # This is done by pulling out the relevant variants from the map data (which

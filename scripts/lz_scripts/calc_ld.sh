@@ -13,15 +13,25 @@ OUT_DIR=/data/scratch/$(whoami)/lz_outputs/ld_files
 
 # Function to calculate the LD information of a region from either UKBB or 1KGP
 CHR=$1
+REGION_CHR=$1
 START=$2
 STOP=$3
 SNP=$4
 ANC=$5
 DAT=$6
+BUILD=$7
 
 UKB_PATH=/data/project/merrimanlab/reference_files/ukbiobank
 UKB_GENO=${UKB_PATH}/genotypes/imputed/
+
 KGP_PATH=/data/project/merrimanlab/reference_files/1kgp_data/per_ancestry/${ANC}/vcf
+
+# If the genome build is for b38, adjust the CHR and KGP_FILE:
+if [[ $BUILD == "38" ]]
+then
+REGION_CHR=chr$1
+KGP_FILE=${KGP_PATH}/1KGP_${ANC}_chr${CHR}.b38.all_samples.rsid.vcf.gz
+fi
 
 # If UKBB, run UKBB code. Otherwise, 1KGP
 if [[ $DAT == "UKB"* ]]
@@ -35,7 +45,7 @@ awk '{gsub(";.*", "", $2); print}' ${OUT_DIR}/${SNP}_tmp.bim | tr -s ' ' '\t' > 
 plink --bfile ${OUT_DIR}/${SNP}_tmp --allow-no-sex --snps-only --r2 inter-chr --ld-snp ${SNP} --ld-window-r2 0 --out ${OUT_DIR}/UKBB_region_${CHR}.${START}-${STOP}_${SNP}
 else
 # 1KGP:
-bcftools view --regions ${CHR}:${START}-${STOP} --output-type z --output-file ${OUT_DIR}/${SNP}_tmp.vcf.gz ${KGP_PATH}/1KGP_${ANC}_chr${CHR}.no_relatives.rsid.vcf.gz
+bcftools view --regions ${REGION_CHR}:${START}-${STOP} --output-type z --output-file ${OUT_DIR}/${SNP}_tmp.vcf.gz ${KGP_FILE}
 plink --vcf ${OUT_DIR}/${SNP}_tmp.vcf.gz --allow-no-sex --snps-only --r2 inter-chr --ld-snp ${SNP} --ld-window-r2 0 --out ${OUT_DIR}/1KGP_${ANC}_region_${CHR}.${START}-${STOP}_${SNP}
 fi
 
