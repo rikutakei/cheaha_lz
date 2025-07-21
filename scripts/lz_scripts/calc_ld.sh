@@ -1,6 +1,6 @@
 #!/bin/bash
 
-module load Anaconda3
+module load Anaconda3 BCFtools HTSlib
 
 # Load in conda environment with bgenix:
 source activate tools
@@ -32,12 +32,12 @@ CHR_UKB=$(echo ${CHR} | awk '{printf "%02.0f", $1}' )
 bgenix -g ${UKB_GENO}/imputed_chr${CHR}.bgen -i ${UKB_GENO}/imputed_chr${CHR}.bgen.bgi -incl-range ${CHR_UKB}:${START}-${STOP} -vcf | bcftools reheader -h ${UKB_PATH}/helper_files/new_header.txt | bcftools annotate --rename-chrs ${UKB_PATH}/helper_files/rename_contigs.txt | bgzip -c > ${OUT_DIR}/${SNP}_tmp.vcf.gz
 plink --vcf ${OUT_DIR}/${SNP}_tmp.vcf.gz --make-bed --out ${OUT_DIR}/${SNP}_tmp
 awk '{gsub(";.*", "", $2); print}' ${OUT_DIR}/${SNP}_tmp.bim | tr -s ' ' '\t' > ${OUT_DIR}/${SNP}_tmp.bim_tmp && mv ${OUT_DIR}/${SNP}_tmp.bim_tmp ${OUT_DIR}/${SNP}_tmp.bim
-plink --bfile ${OUT_DIR}/${SNP}_tmp --allow-no-sex --snps-only --r2 --inter-chr --ld-snp ${SNP} --ld-window-r2 0 --out ${OUT_DIR}/UKBB_region_${CHR}.${START}-${STOP}_${SNP}
+plink --bfile ${OUT_DIR}/${SNP}_tmp --allow-no-sex --snps-only --r2 inter-chr --ld-snp ${SNP} --ld-window-r2 0 --out ${OUT_DIR}/UKBB_region_${CHR}.${START}-${STOP}_${SNP}
 else
 # 1KGP:
 bcftools view --regions ${CHR}:${START}-${STOP} --output-type z --output-file ${OUT_DIR}/${SNP}_tmp.vcf.gz ${KGP_PATH}/1KGP_${ANC}_chr${CHR}.no_relatives.rsid.vcf.gz
-plink --vcf ${OUT_DIR}/${SNP}_tmp.vcf.gz --allow-no-sex --snps-only --r2 --inter-chr --ld-snp ${SNP} --ld-window-r2 0 --out ${OUT_DIR}/1KGP_${ANC}_region_${CHR}.${START}-${STOP}_${SNP}
+plink --vcf ${OUT_DIR}/${SNP}_tmp.vcf.gz --allow-no-sex --snps-only --r2 inter-chr --ld-snp ${SNP} --ld-window-r2 0 --out ${OUT_DIR}/1KGP_${ANC}_region_${CHR}.${START}-${STOP}_${SNP}
 fi
 
-rm ${OUT_DIR}/${SNP}_tmp.* ${OUT_DIR}/*_region_${CHR}.${START}-${STOP}_${SNP}.nosex
+# rm ${OUT_DIR}/${SNP}_tmp.* ${OUT_DIR}/*_region_${CHR}.${START}-${STOP}_${SNP}.nosex
 

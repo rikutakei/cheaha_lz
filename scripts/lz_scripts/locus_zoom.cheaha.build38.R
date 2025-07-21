@@ -25,6 +25,10 @@ if (ancestry == 'TAMA') {
 	p_type = 'P'
 }
 
+dat$CHR[dat$CHR == 'X'] = 23
+dat$CHR[dat$CHR == 'Y'] = 24
+dat$CHR = as.numeric(dat$CHR)
+
 # Load mapping data:
 # TODO: make the path more general
 if (ancestry == 'UKB') {

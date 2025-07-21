@@ -203,6 +203,10 @@ locus.zoom <- function(data = NULL, snp = NA, gene = NA, region = NA, ld.file = 
 			stop("You need to specify a mapping data to convert the position to build 37.")
 		}
 		region.ld = adjust.region(lead.data, map.data)
+		if (region[1] %in% c('X', 'Y', 'MT')) {
+			region[1] = switch(region[1], X = 23, Y = 24, MT = 25)
+			region = as.numeric(region)
+		}
 	}
 
 	# If LD information is not supplied, calculate it from the 1000 genomes data:
@@ -261,9 +265,11 @@ locus.zoom <- function(data = NULL, snp = NA, gene = NA, region = NA, ld.file = 
 	if(length(genes.data[, "Gene"]) > 15){
 		track.max = 6
 		font.size = 0.45
+		# font.size = 1
 	} else{
 		track.max = 3
 		font.size = 0.6
+		# font.size = 1
 	}
 	plot(1, type = "n", yaxt = "n", xlab = paste("Position on Chromosome", lead.chr), ylab="", xlim = c(x.min, x.max), ylim = c(0, track.max), xaxt = "n")
 	x_marks = axTicks(side = 1)
@@ -572,13 +578,6 @@ elog10 <- function(p) {
 get.ld <- function(region, snp, population) {
 	ld.snp = snp
 
-	if (region[1] == "23") {
-		if (population == "UKB") {
-			stop('There is no X chromosome information available for UKBB.')
-		}
-		region[1] = "X"
-	}
-
 	# Make a new check statement for 1KGP and UKBB
 	if (population == 'UKB') {
 		vcf.filename = 'imputed_chrZZ.bgen'
@@ -594,6 +593,14 @@ get.ld <- function(region, snp, population) {
 		}
 	}
 	vcf.filename = gsub(pattern = 'ZZ', replacement = region[1], vcf.filename)
+
+	if (region[1] == 23) {
+		if (population == "UKB") {
+			stop('There is no X chromosome information available for UKBB.')
+		}
+		vcf.filename = gsub(pattern = 'chr23', replacement = 'chrX', vcf.filename)
+	}
+
 	file_list = list.files(path = file_path)
 
 	# Check if necessary genotype file can be reached
@@ -673,12 +680,12 @@ read.plink.loci <- function(file = NULL) {
 # position.
 #
 # NOTE: It is faster and more efficient to pull out just the first and last
-# variants from the mpa data, but since there is no guarantee that the first
+# variants from the map data, but since there is no guarantee that the first
 # and last SNP is actually present in the map data, pull out all the variants
 # from the map data and get the lowest and highest positions
 #
 adjust.region = function(data, map.data) {
-	target_chr = unique(data$CHR)
+	target_chr = ifelse(unique(data$CHR) == 23, 'X', unique(data$CHR))
 	subset = map.data[which(map.data$CHR == target_chr), ]
 	subset = subset[which(subset$SNP %in% data$SNP), ]
 	region = c(unique(subset$CHR), min(subset$BP), max(subset$BP))
