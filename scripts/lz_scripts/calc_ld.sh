@@ -39,14 +39,14 @@ then
 # UKBB:
 # First adjust the chromosome so it has leading 0's for single-digit chromosome:
 CHR_UKB=$(echo ${CHR} | awk '{printf "%02.0f", $1}' )
-bgenix -g ${UKB_GENO}/imputed_chr${CHR}.bgen -i ${UKB_GENO}/imputed_chr${CHR}.bgen.bgi -incl-range ${CHR_UKB}:${START}-${STOP} -vcf | bcftools reheader -h ${UKB_PATH}/helper_files/new_header.txt | bcftools annotate --rename-chrs ${UKB_PATH}/helper_files/rename_contigs.txt | bgzip -c > ${OUT_DIR}/${SNP}_tmp.vcf.gz
-plink --vcf ${OUT_DIR}/${SNP}_tmp.vcf.gz --make-bed --out ${OUT_DIR}/${SNP}_tmp
-awk '{gsub(";.*", "", $2); print}' ${OUT_DIR}/${SNP}_tmp.bim | tr -s ' ' '\t' > ${OUT_DIR}/${SNP}_tmp.bim_tmp && mv ${OUT_DIR}/${SNP}_tmp.bim_tmp ${OUT_DIR}/${SNP}_tmp.bim
-plink --bfile ${OUT_DIR}/${SNP}_tmp --allow-no-sex --snps-only --r2 inter-chr --ld-snp ${SNP} --ld-window-r2 0 --out ${OUT_DIR}/UKBB_region_${CHR}.${START}-${STOP}_${SNP}
+bgenix -g ${UKB_GENO}/imputed_chr${CHR}.bgen -i ${UKB_GENO}/imputed_chr${CHR}.bgen.bgi -incl-range ${CHR_UKB}:${START}-${STOP} -vcf | bcftools reheader -h ${UKB_PATH}/helper_files/new_header.txt | bcftools annotate --rename-chrs ${UKB_PATH}/helper_files/rename_contigs.txt | bgzip -c > ${OUT_DIR}/UKB_${SNP}_tmp.vcf.gz
+plink --vcf ${OUT_DIR}/UKB_${SNP}_tmp.vcf.gz --make-bed --out ${OUT_DIR}/UKB_${SNP}_tmp
+awk '{gsub(";.*", "", $2); print}' ${OUT_DIR}/UKB_${SNP}_tmp.bim | tr -s ' ' '\t' > ${OUT_DIR}/UKB_${SNP}_tmp.bim_tmp && mv ${OUT_DIR}/UKB_${SNP}_tmp.bim_tmp ${OUT_DIR}/UKB_${SNP}_tmp.bim
+plink --bfile ${OUT_DIR}/UKB_${SNP}_tmp --allow-no-sex --snps-only --r2 inter-chr --ld-snp ${SNP} --ld-window-r2 0 --out ${OUT_DIR}/UKBB_region_${CHR}.${START}-${STOP}_${SNP}
 else
 # 1KGP:
-bcftools view --regions ${REGION_CHR}:${START}-${STOP} --output-type z --output-file ${OUT_DIR}/${SNP}_tmp.vcf.gz ${KGP_FILE}
-plink --vcf ${OUT_DIR}/${SNP}_tmp.vcf.gz --allow-no-sex --snps-only --r2 inter-chr --ld-snp ${SNP} --ld-window-r2 0 --out ${OUT_DIR}/1KGP_${ANC}_region_${CHR}.${START}-${STOP}_${SNP}
+bcftools view --regions ${REGION_CHR}:${START}-${STOP} --output-type z --output-file ${OUT_DIR}/${ANC}_${SNP}_tmp.vcf.gz ${KGP_FILE}
+plink --vcf ${OUT_DIR}/${ANC}_${SNP}_tmp.vcf.gz --allow-no-sex --snps-only --r2 inter-chr --ld-snp ${SNP} --ld-window-r2 0 --out ${OUT_DIR}/1KGP_${ANC}_region_${CHR}.${START}-${STOP}_${SNP}
 fi
 
 # rm ${OUT_DIR}/${SNP}_tmp.* ${OUT_DIR}/*_region_${CHR}.${START}-${STOP}_${SNP}.nosex

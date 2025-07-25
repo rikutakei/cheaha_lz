@@ -578,12 +578,12 @@ get.ld <- function(region, snp, population, build) {
 	}
 	vcf.filename = gsub(pattern = 'ZZ', replacement = region[1], vcf.filename)
 
-	# Deal with chrX (it is supposed to be numeric, as it is converted during
-	# the LZ call in parent script):
-	if (region[1] == 23) {
+	# Deal with chrX:
+	if (region[1] == 23 | region[1] == 'X') {
 		if (population == "UKB") {
 			stop('There is no X chromosome information available for UKBB.')
 		}
+		region[1] = 'X'
 		vcf.filename = gsub(pattern = 'chr23', replacement = 'chrX', vcf.filename)
 	}
 
@@ -665,26 +665,5 @@ read.plink.loci <- function(file = NULL) {
 	data = read.table(file, stringsAsFactors = FALSE, header = TRUE)
 	data = data[,c(1,3:5)]
 	return(data)
-}
-
-# TODO: delete this function after proper calc_ld implementation
-#
-# Function to "map/convert" the build 38 position to build 37.
-#
-# This is done by pulling out the relevant variants from the map data (which
-# has rsID and build 37 positions) and taking the lowest and highest base
-# position.
-#
-# NOTE: It is faster and more efficient to pull out just the first and last
-# variants from the map data, but since there is no guarantee that the first
-# and last SNP is actually present in the map data, pull out all the variants
-# from the map data and get the lowest and highest positions
-#
-adjust.region = function(data, map.data) {
-	target_chr = ifelse(unique(data$CHR) == 23, 'X', unique(data$CHR))
-	subset = map.data[which(map.data$CHR == target_chr), ]
-	subset = subset[which(subset$SNP %in% data$SNP), ]
-	region = c(unique(subset$CHR), min(subset$BP), max(subset$BP))
-	return(region)
 }
 

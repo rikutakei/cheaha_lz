@@ -60,9 +60,8 @@ offset = 0
 if (type == 'gene') {
 	input_gene = args[5]
 	input_str = input_gene
-	offset = ifelse(length(args) == 5, 100000, args[6])
+	offset = as.numeric(ifelse(length(args) == 5, 100000, args[6]))
 } else if (type == 'region') {
-	region = region
 	chr = as.numeric(args[5])
 	start = as.numeric(args[6])
 	end = as.numeric(args[7])
@@ -72,7 +71,7 @@ if (type == 'gene') {
 	input_snp = args[5]
 	input_str = input_snp
 	lead_ignore = T
-	offset = ifelse(length(args) == 5, 500000, args[6])
+	offset = as.numeric(ifelse(length(args) == 5, 500000, args[6]))
 }
 
 out_name = paste(c(out_prefix, input_str, gsub('/', '', format(Sys.time(), '%D')), 'lz.jpg'), collapse = '_')
