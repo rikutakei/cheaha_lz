@@ -65,7 +65,7 @@ if (type == 'gene') {
 	chr = as.numeric(args[5])
 	start = as.numeric(args[6])
 	end = as.numeric(args[7])
-	region = c(chr, start, end)
+	input_region = c(chr, start, end)
 	input_str = paste(chr, ':', start, '-', end, sep = '')
 } else if (type == 'snp'){
 	input_snp = args[5]
